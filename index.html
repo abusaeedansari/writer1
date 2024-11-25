@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenOffice Writer Quiz Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        header {
+            background: #50b3a2;
+            color: #fff;
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 36px;
+        }
+
+        #start-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #start-container input {
+            padding: 10px;
+            font-size: 18px;
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #start-container button {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #50b3a2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #start-container button:hover {
+            background-color: #429489;
+        }
+
+        #quiz-container {
+            display: none;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        #question-number {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        #timer {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #d9534f;
+        }
+
+        #score {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #question {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .options {
+            margin-bottom: 20px;
+        }
+
+        .option {
+            margin-bottom: 10px;
+        }
+
+        .option input {
+            margin-right: 10px;
+        }
+
+        #submit-button, #next-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #50b3a2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #submit-button:hover, #next-button:hover {
+            background-color: #429489;
+        }
+
+        #feedback {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        #end-message {
+            display: none;
+            text-align: center;
+            font-size: 24px;
+            margin-top: 30px;
+        }
+
+        #restart-button {
+            display: none;
+            margin: 20px auto;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #50b3a2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #restart-button:hover {
+            background-color: #429489;
+        }
+
+        .matching-pair {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .matching-pair label {
+            width: 40%;
+            margin-right: 10px;
+        }
+
+        .matching-pair input {
+            width: 50%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        /* Adjust text input size for fill-in-the-blanks */
+    #fillblank-answer, .matching-pair input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 28px;
+            }
+
+            #question {
+                font-size: 18px;
+            }
+
+            #start-container input {
+                font-size: 16px;
+                padding: 8px;
+            }
+
+            #start-container button, #submit-button, #restart-button, #next-button {
+                font-size: 16px;
+                padding: 10px 20px;
+            }
+
+            .matching-pair label, .matching-pair input {
+                width: 100%;
+            }
+
+            .matching-pair {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>OpenOffice Writer Quiz Game</h1>
+</header>
+
+<div class="container">
+    <div id="start-container">
+        <input type="text" id="player-name" placeholder="Enter your name">
+        <br>
+        <button id="start-button" onclick="startGame()">Start Quiz</button>
+    </div>
+
+    <div id="quiz-container">
+        <div id="question-number"></div>
+        <div id="timer"></div>
+        <div id="score"></div>
+        <div id="question"></div>
+        <div class="options" id="options-container"></div>
+        <button id="submit-button" onclick="checkAnswer()">Submit</button>
+        <button id="next-button" onclick="nextQuestion()" style="display:none;">Next</button>
+        <div id="feedback"></div>
+    </div>
+
+    <div id="end-message">
+        <p>Great job, <span id="final-player-name"></span>! You've completed the quiz.</p>
+        <p>Your final score is: <span id="final-score"></span> out of 500.</p>
+    </div>
+
+    <button id="restart-button" onclick="restartGame()">Play Again</button>
+</div>
+
+<script>
+    const questions = [
+        // 50 questions including the extra one
+        // Multiple Choice Questions
+        {
+            type: 'mcq',
+            question: 'Which keyboard shortcut is used to make text bold in OpenOffice Writer?',
+            options: ['Ctrl+B', 'Ctrl+I', 'Ctrl+U', 'Ctrl+L'],
+            answer: 'Ctrl+B',
+            explanation: 'Ctrl+B is used to make text bold.'
+        },
+        {
+        type: 'mcq',
+        question: 'What is the keyboard shortcut to italicize text?',
+        options: ['Ctrl+I', 'Ctrl+B', 'Ctrl+U', 'Ctrl+E'],
+        answer: 'Ctrl+I',
+        explanation: 'Ctrl+I is used to italicize text.'
+        },
+        {
+        type: 'mcq',
+        question: 'How do you underline text using the keyboard?',
+        options: ['Ctrl+U', 'Ctrl+I', 'Ctrl+B', 'Ctrl+Z'],
+        answer: 'Ctrl+U',
+        explanation: 'Ctrl+U is the shortcut for underlining text.'
+        },
+        {
+        type: 'mcq',
+        question: 'Which keyboard shortcut centers the text alignment?',
+        options: ['Ctrl+E', 'Ctrl+L', 'Ctrl+R', 'Ctrl+J'],
+        answer: 'Ctrl+E',
+        explanation: 'Ctrl+E centers the text alignment.'
+    },
+    {
+        type: 'mcq',
+        question: 'What is the keyboard shortcut to align text to the right?',
+        options: ['Ctrl+R', 'Ctrl+L', 'Ctrl+E', 'Ctrl+J'],
+        answer: 'Ctrl+R',
+        explanation: 'Ctrl+R aligns the text to the right.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which shortcut increases line spacing to double?',
+        options: ['Ctrl+2', 'Ctrl+1', 'Ctrl+5', 'Ctrl+D'],
+        answer: 'Ctrl+2',
+        explanation: 'Ctrl+2 sets the line spacing to double.'
+    },
+    {
+        type: 'mcq',
+        question: 'How can you open the Find and Replace dialog box quickly?',
+        options: ['Ctrl+H', 'Ctrl+F', 'Ctrl+G', 'Ctrl+R'],
+        answer: 'Ctrl+H',
+        explanation: 'Ctrl+H opens the Find and Replace dialog.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which tool helps you find synonyms for a word?',
+        options: ['Thesaurus', 'Spell Checker', 'Find and Replace', 'Format Paintbrush'],
+        answer: 'Thesaurus',
+        explanation: 'The Thesaurus tool helps find synonyms.'
+    },
+    {
+        type: 'mcq',
+        question: 'What is the shortcut for checking spelling?',
+        options: ['F7', 'F1', 'Ctrl+S', 'Ctrl+P'],
+        answer: 'F7',
+        explanation: 'Press F7 to check spelling.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which tool copies formatting from one part of text to another?',
+        options: ['Format Paintbrush', 'Thesaurus', 'Spell Checker', 'Find and Replace'],
+        answer: 'Format Paintbrush',
+        explanation: 'Format Paintbrush copies text formatting.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which menu allows you to change the line spacing?',
+        options: ['Format', 'Insert', 'Tools', 'View'],
+        answer: 'Format',
+        explanation: 'Line spacing options are under the Format menu.'
+    },
+    {
+        type: 'mcq',
+        question: 'How do you increase indentation using the keyboard?',
+        options: ['Tab key', 'Shift+Tab', 'Ctrl+I', 'Ctrl+Tab'],
+        answer: 'Tab key',
+        explanation: 'Pressing Tab increases indentation.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which keyboard shortcut justifies the text alignment?',
+        options: ['Ctrl+J', 'Ctrl+L', 'Ctrl+E', 'Ctrl+R'],
+        answer: 'Ctrl+J',
+        explanation: 'Ctrl+J justifies the text.'
+    },
+    {
+        type: 'mcq',
+        question: 'What is the default line spacing in OpenOffice Writer?',
+        options: ['Single', '1.5', 'Double', 'Custom'],
+        answer: 'Single',
+        explanation: 'Single is the default line spacing.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which keyboard shortcut creates a new document?',
+        options: ['Ctrl+N', 'Ctrl+O', 'Ctrl+S', 'Ctrl+P'],
+        answer: 'Ctrl+N',
+        explanation: 'Ctrl+N opens a new document.'
+    },
+    {
+        type: 'mcq',
+        question: 'How do you create a bullet list?',
+        options: ['Click the Bullet List button', 'Press Ctrl+B', 'Use the Thesaurus', 'Press F7'],
+        answer: 'Click the Bullet List button',
+        explanation: 'Use the Bullet List button to create bullet lists.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which shortcut decreases line spacing to single?',
+        options: ['Ctrl+1', 'Ctrl+2', 'Ctrl+5', 'Ctrl+S'],
+        answer: 'Ctrl+1',
+        explanation: 'Ctrl+1 sets line spacing to single.'
+    },
+    {
+        type: 'mcq',
+        question: 'What is the shortcut to undo the last action?',
+        options: ['Ctrl+Z', 'Ctrl+Y', 'Ctrl+U', 'Ctrl+X'],
+        answer: 'Ctrl+Z',
+        explanation: 'Ctrl+Z undoes the last action.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which keyboard shortcut pastes copied text?',
+        options: ['Ctrl+V', 'Ctrl+C', 'Ctrl+P', 'Ctrl+X'],
+        answer: 'Ctrl+V',
+        explanation: 'Ctrl+V pastes copied content.'
+    },
+    // True or False Questions
+    {
+        type: 'truefalse',
+        question: 'Pressing Ctrl+I will make the selected text italic.',
+        answer: 'True',
+        explanation: 'Ctrl+I is the shortcut for italics.'
+    },
+    {
+        type: 'truefalse',
+        question: 'The Spell Checker can correct grammatical errors automatically.',
+        answer: 'False',
+        explanation: 'The Spell Checker checks spelling, not grammar.'
+    },
+    {
+        type: 'truefalse',
+        question: 'You can use Find and Replace to replace all instances of a word.',
+        answer: 'True',
+        explanation: 'Find and Replace replaces words throughout the document.'
+    },
+    {
+        type: 'truefalse',
+        question: 'Ctrl+E aligns text to the left.',
+        answer: 'False',
+        explanation: 'Ctrl+E centers the text; Ctrl+L aligns left.'
+    },
+    {
+        type: 'truefalse',
+        question: 'Using bullets in a list automatically numbers the items.',
+        answer: 'False',
+        explanation: 'Bullets use symbols; numbering uses numbers.'
+    },
+    {
+        type: 'truefalse',
+        question: 'The Format Paintbrush can copy both text and paragraph formatting.',
+        answer: 'True',
+        explanation: 'It copies all formatting attributes.'
+    },
+    {
+        type: 'truefalse',
+        question: 'Pressing F7 will run the Spell Checker.',
+        answer: 'True',
+        explanation: 'F7 opens the Spell Checker.'
+    },
+    {
+        type: 'truefalse',
+        question: 'Ctrl+R aligns text to the right.',
+        answer: 'True',
+        explanation: 'Ctrl+R is the shortcut for right alignment.'
+    },
+    {
+        type: 'truefalse',
+        question: 'You can increase indentation by pressing Shift+Tab.',
+        answer: 'False',
+        explanation: 'Shift+Tab decreases indentation; Tab increases it.'
+    },
+    {
+        type: 'truefalse',
+        question: 'Line spacing affects the space between lines of text.',
+        answer: 'True',
+        explanation: 'Line spacing adjusts the distance between lines.'
+    },
+     // Fill in the Blanks
+     {
+        type: 'fillblank',
+        question: 'To copy text, you can use the shortcut Ctrl+___.',
+        answer: 'C',
+        explanation: 'Ctrl+C copies selected text.'
+    },
+    {
+        type: 'fillblank',
+        question: 'Pressing Ctrl+___ will underline the selected text.',
+        answer: 'U',
+        explanation: 'Ctrl+U underlines text.'
+    },
+    {
+        type: 'fillblank',
+        question: 'The shortcut for selecting all text is Ctrl+___.',
+        answer: 'A',
+        explanation: 'Ctrl+A selects all content.'
+    },
+    {
+        type: 'fillblank',
+        question: 'To redo an action, you can press Ctrl+___.',
+        answer: 'Y',
+        explanation: 'Ctrl+Y redoes the last undone action.'
+    },
+    {
+        type: 'fillblank',
+        question: 'To find text in the document, press Ctrl+___.',
+        answer: 'F',
+        explanation: 'Ctrl+F opens the Find dialog.'
+    },
+    {
+        type: 'fillblank',
+        question: 'To decrease line spacing to 1.5, press Ctrl+___.',
+        answer: '5',
+        explanation: 'Ctrl+5 sets line spacing to 1.5.'
+    },
+    {
+        type: 'fillblank',
+        question: 'The keyboard shortcut Ctrl+___ is used to save a document.',
+        answer: 'S',
+        explanation: 'Ctrl+S saves the current document.'
+    },
+    {
+        type: 'fillblank',
+        question: 'To cut selected text, use Ctrl+___.',
+        answer: 'X',
+        explanation: 'Ctrl+X cuts the selected text.'
+    },
+    {
+        type: 'fillblank',
+        question: 'The Thesaurus helps you find synonyms and ___.',
+        answer: 'Antonyms',
+        explanation: 'It provides synonyms and antonyms.'
+    },
+    // Matching Questions
+    {
+        type: 'matching',
+        question: 'Match the shortcuts with their functions.',
+        pairs: [
+            { left: 'Ctrl+C', right: 'Copy' },
+            { left: 'Ctrl+V', right: 'Paste' },
+            { left: 'Ctrl+X', right: 'Cut' },
+            { left: 'Ctrl+Z', right: 'Undo' }
+        ],
+        explanation: ''
+    },
+    {
+        type: 'matching',
+        question: 'Match the alignment shortcuts with their alignments.',
+        pairs: [
+            { left: 'Ctrl+L', right: 'Left Align' },
+            { left: 'Ctrl+E', right: 'Center Align' },
+            { left: 'Ctrl+R', right: 'Right Align' },
+            { left: 'Ctrl+J', right: 'Justify' }
+        ],
+        explanation: ''
+    },
+    {
+        type: 'matching',
+        question: 'Match the tools with their purposes.',
+        pairs: [
+            { left: 'Spell Checker', right: 'Checks spelling errors' },
+            { left: 'Thesaurus', right: 'Finds synonyms' },
+            { left: 'Find and Replace', right: 'Replaces text' },
+            { left: 'Format Paintbrush', right: 'Copies formatting' }
+        ],
+        explanation: ''
+    },
+    {
+        type: 'matching',
+        question: 'Match the line spacing shortcuts with their spacings.',
+        pairs: [
+            { left: 'Ctrl+1', right: 'Single Spacing' },
+            { left: 'Ctrl+5', right: '1.5 Spacing' },
+            { left: 'Ctrl+2', right: 'Double Spacing' },
+            { left: 'Ctrl+0', right: 'Add/Remove Space Before Paragraph' }
+        ],
+        explanation: ''
+    },
+    {
+        type: 'matching',
+        question: 'Match the actions with their toolbar icons.',
+        pairs: [
+            { left: 'Bold', right: 'B Icon' },
+            { left: 'Italic', right: 'I Icon' },
+            { left: 'Underline', right: 'U Icon' },
+            { left: 'Bullet List', right: '• Icon' }
+        ],
+        explanation: ''
+    },
+    ,
+    {
+        type: 'mcq',
+        question: 'Which of these is NOT a text alignment option?',
+        options: ['Left', 'Center', 'Right', 'Diagonal'],
+        answer: 'Diagonal',
+        explanation: 'Diagonal is not a standard text alignment.'
+    },
+    {
+        type: 'mcq',
+        question: 'How do you create a numbered list?',
+        options: ['Click the Numbered List button', 'Press Ctrl+N', 'Use the Thesaurus', 'Press F7'],
+        answer: 'Click the Numbered List button',
+        explanation: 'Use the Numbered List button for numbered lists.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which tool would you use to replace all occurrences of a word?',
+        options: ['Find and Replace', 'Spell Checker', 'Thesaurus', 'Format Paintbrush'],
+        answer: 'Find and Replace',
+        explanation: 'Find and Replace replaces words throughout the document.'
+    },
+    {
+        type: 'mcq',
+        question: 'Which shortcut do you use to select all text in a document?',
+        options: ['Ctrl+A', 'Ctrl+S', 'Ctrl+Shift+A', 'Ctrl+Alt+A'],
+        answer: 'Ctrl+A',
+        explanation: 'Ctrl+A selects all content.'
+    },
+    {
+        type: 'truefalse',
+        question: 'You cannot insert images into OpenOffice Writer documents.',
+        answer: 'False',
+        explanation: 'Images can be inserted into documents.'
+    },
+    {
+        type: 'truefalse',
+        question: 'Line spacing affects the space between words in a sentence.',
+        answer: 'False',
+        explanation: 'Line spacing affects space between lines, not words.'
+    }
+    ];
+
+    let playerName = '';
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timerInterval;
+    let timeLeft = 60; // 1 minute per question
+
+    function startGame() {
+        playerName = document.getElementById('player-name').value.trim();
+        if (playerName === '') {
+            alert('Please enter your name to start the quiz.');
+            return;
+        }
+        document.getElementById('start-container').style.display = 'none';
+        document.getElementById('quiz-container').style.display = 'block';
+        shuffleQuestions();
+        showQuestion();
+        startTimer();
+    }
+
+    function showQuestion() {
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('next-button').style.display = 'none';
+        document.getElementById('submit-button').style.display = 'inline-block';
+        resetTimer();
+        let questionObj = questions[currentQuestionIndex];
+        document.getElementById('question-number').textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+        document.getElementById('score').textContent = `Score: ${score}`;
+        document.getElementById('question').textContent = questionObj.question;
+        document.getElementById('submit-button').disabled = false;
+
+        let optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+
+        if (questionObj.type === 'mcq') {
+            questionObj.options.forEach((option, index) => {
+                let optionDiv = document.createElement('div');
+                optionDiv.classList.add('option');
+                optionDiv.innerHTML = `<input type="radio" name="option" value="${option}" id="option${index}">
+                                       <label for="option${index}">${option}</label>`;
+                optionsContainer.appendChild(optionDiv);
+            });
+        } else if (questionObj.type === 'truefalse') {
+            ['True', 'False'].forEach((option, index) => {
+                let optionDiv = document.createElement('div');
+                optionDiv.classList.add('option');
+                optionDiv.innerHTML = `<input type="radio" name="option" value="${option}" id="option${index}">
+                                       <label for="option${index}">${option}</label>`;
+                optionsContainer.appendChild(optionDiv);
+            });
+        } else if (questionObj.type === 'fillblank') {
+            optionsContainer.innerHTML = `<input type="text" id="fillblank-answer" placeholder="Your answer here">`;
+        } else if (questionObj.type === 'matching') {
+            optionsContainer.innerHTML = '';
+            questionObj.pairs.forEach((pair, index) => {
+                let optionDiv = document.createElement('div');
+                optionDiv.classList.add('matching-pair');
+                optionDiv.innerHTML = `<label>${pair.left}:</label>
+                                       <input type="text" id="match${index}" placeholder="Your match">`;
+                optionsContainer.appendChild(optionDiv);
+            });
+            // Shuffle the right column options
+            let rightOptions = questionObj.pairs.map(pair => pair.right);
+            rightOptions.sort(() => Math.random() - 0.5);
+            let rightOptionsDiv = document.createElement('div');
+            rightOptionsDiv.innerHTML = `<p><strong>Options:</strong> ${rightOptions.join(', ')}</p>`;
+            optionsContainer.appendChild(rightOptionsDiv);
+        }
+    }
+
+    function checkAnswer() {
+        clearInterval(timerInterval);
+        let questionObj = questions[currentQuestionIndex];
+        let isCorrect = false;
+
+        if (questionObj.type === 'mcq' || questionObj.type === 'truefalse') {
+            let selectedOption = document.querySelector('input[name="option"]:checked');
+            if (!selectedOption) {
+                alert('Please select an answer.');
+                startTimer(); // Restart timer if no selection
+                return;
+            }
+            if (selectedOption.value === questionObj.answer) {
+                isCorrect = true;
+            }
+        } else if (questionObj.type === 'fillblank') {
+            let userAnswer = document.getElementById('fillblank-answer').value.trim();
+            if (userAnswer.toLowerCase() === questionObj.answer.toLowerCase()) {
+                isCorrect = true;
+            }
+        } else if (questionObj.type === 'matching') {
+            isCorrect = true;
+            questionObj.pairs.forEach((pair, index) => {
+                let userAnswer = document.getElementById(`match${index}`).value.trim();
+                if (userAnswer.toLowerCase() !== pair.right.toLowerCase()) {
+                    isCorrect = false;
+                }
+            });
+        }
+
+        if (isCorrect) {
+            score += 10;
+            document.getElementById('feedback').textContent = 'Correct! ' + (questionObj.explanation || '');
+        } else {
+            document.getElementById('feedback').textContent = 'Incorrect. ' + (questionObj.explanation || '');
+        }
+
+        document.getElementById('score').textContent = `Score: ${score}`;
+        document.getElementById('submit-button').style.display = 'none';
+        document.getElementById('next-button').style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            showQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        clearInterval(timerInterval);
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('end-message').style.display = 'block';
+        document.getElementById('final-player-name').textContent = playerName;
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('restart-button').style.display = 'block';
+    }
+
+    function restartGame() {
+        playerName = '';
+        currentQuestionIndex = 0;
+        score = 0;
+        document.getElementById('start-container').style.display = 'block';
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('end-message').style.display = 'none';
+        document.getElementById('restart-button').style.display = 'none';
+        document.getElementById('player-name').value = '';
+    }
+
+    function shuffleQuestions() {
+        questions.sort(() => Math.random() - 0.5);
+    }
+
+    function startTimer() {
+        timeLeft = 60; // Reset to 1 minute per question
+        updateTimerDisplay();
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert('Time is up! Moving to the next question.');
+                document.getElementById('feedback').textContent = 'Time is up! The correct answer is: ' + questions[currentQuestionIndex].answer;
+                document.getElementById('submit-button').style.display = 'none';
+                document.getElementById('next-button').style.display = 'inline-block';
+            }
+        }, 1000);
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        startTimer();
+    }
+
+    function updateTimerDisplay() {
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        document.getElementById('timer').textContent = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+</script>
+
+</body>
+</html>

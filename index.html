@@ -352,16 +352,22 @@
 
         document.getElementById('score').textContent = `Score: ${score}`;
         document.getElementById('submit-button').style.display = 'none';
-        document.getElementById('next-button').style.display = 'inline-block';
+
+        // Check if this is the last question
+        if (currentQuestionIndex >= questions.length - 1) {
+            document.getElementById('next-button').style.display = 'none';
+            // Delay before ending the game to show feedback
+            setTimeout(() => {
+                endGame();
+            }, 2000);
+        } else {
+            document.getElementById('next-button').style.display = 'inline-block';
+        }
     }
 
     function nextQuestion() {
         currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
-            showQuestion();
-        } else {
-            endGame();
-        }
+        showQuestion();
     }
 
     function endGame() {
@@ -399,7 +405,16 @@
                 clearInterval(timerInterval);
                 document.getElementById('feedback').textContent = 'Time is up! The correct answer is: ' + questions[currentQuestionIndex].answer;
                 document.getElementById('submit-button').style.display = 'none';
-                document.getElementById('next-button').style.display = 'inline-block';
+
+                // Check if this is the last question
+                if (currentQuestionIndex >= questions.length - 1) {
+                    document.getElementById('next-button').style.display = 'none';
+                    setTimeout(() => {
+                        endGame();
+                    }, 2000);
+                } else {
+                    document.getElementById('next-button').style.display = 'inline-block';
+                }
             }
         }, 1000);
     }
@@ -415,8 +430,7 @@
         document.getElementById('timer').textContent = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     }
 
-    // Note: The questions array should be included here or in a separate script file.
-    // Replace the below empty array with your actual questions array.
+    // Note: The questions array should be included here.
     const questions = [
         // Include your questions here
         {
@@ -724,7 +738,13 @@
         ],
         explanation: ''
     },
-    ,
+    {
+        type: 'mcq',
+        question: 'Which tool copies formatting from one part of text to another?',
+        options: ['Format Paintbrush', 'Spell Checker', 'Thesaurus', 'Find and Replace'],
+        answer: 'Format Paintbrush',
+        explanation: 'Format Paintbrush copies formatting.'
+    },
     {
         type: 'mcq',
         question: 'Which of these is NOT a text alignment option?',
@@ -765,6 +785,8 @@
         answer: 'False',
         explanation: 'Line spacing affects space between lines, not words.'
     }
+ 
+
     ];
 </script>
 
